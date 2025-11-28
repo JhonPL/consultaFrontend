@@ -11,6 +11,9 @@ import { useAuth } from "./context/AuthContext";
 import TableReportes from "./components/tables/BasicTables/TableReporteS";
 import TableUserRol from "./components/tables/BasicTables/TableUserRol";
 import TableEntidades from "./components/tables/BasicTables/TableEntidades";
+import GestionInstancias from "./pages/Instancias/GestionInstancias";
+import HistoricoReportes from "./pages/Historico/HistoricoReportes";
+
 
 // ✅ Componentes de páginas
 const Reportes = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReportes/></div>;
@@ -50,8 +53,9 @@ export default function App() {
           {/* 🔹 Administrador */}
           <Route path="/reportes" element={<Reportes />} />
           <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/historico" element={<Historico />} />
+          <Route path="/historico" element={<HistoricoReportes />} />
           <Route path="/entidades" element={<Entidades />} />
+          <Route path="/instancias" element={<GestionInstancias />} />
 
           {/* 🔹 Responsable */}
           <Route path="/mis-reportes" element={<MisReportes />} />

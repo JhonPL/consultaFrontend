@@ -75,13 +75,13 @@ export default function TableReportes() {
       setEntidades(entidadesData.filter(e => e.activo));
       setFrecuencias(frecuenciasData);
       setUsuarios(usuariosData.filter(u => u.activo));
-      
+
       // Filtrar usuarios por rol
       const usuariosActivos = usuariosData.filter(u => u.activo);
-      setResponsables(usuariosActivos.filter(u => 
+      setResponsables(usuariosActivos.filter(u =>
         u.rol?.nombre?.toUpperCase().includes('RESPONSABLE')
       ));
-      setSupervisores(usuariosActivos.filter(u => 
+      setSupervisores(usuariosActivos.filter(u =>
         u.rol?.nombre?.toUpperCase().includes('SUPERVISOR')
       ));
     } catch (err: any) {
@@ -519,11 +519,10 @@ export default function TableReportes() {
                     {reporte.responsableElaboracion?.nombreCompleto || "-"}
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      reporte.activo
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${reporte.activo
                         ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                         : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                    }`}>
+                      }`}>
                       {reporte.activo ? "Activo" : "Inactivo"}
                     </span>
                   </td>
@@ -598,9 +597,8 @@ export default function TableReportes() {
                     placeholder="REP-001"
                     required
                     disabled={!isNewReporte}
-                    className={`h-11 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 dark:border-gray-700 ${
-                      !isNewReporte ? "bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800" : "bg-transparent text-gray-800 dark:bg-gray-900 dark:text-white/90"
-                    }`}
+                    className={`h-11 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 dark:border-gray-700 ${!isNewReporte ? "bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-800" : "bg-transparent text-gray-800 dark:bg-gray-900 dark:text-white/90"
+                      }`}
                   />
                 </div>
 
@@ -767,12 +765,13 @@ export default function TableReportes() {
                 {/* Fecha Inicio Vigencia */}
                 <div className="col-span-1">
                   <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Fecha Inicio Vigencia
+                    Fecha Inicio Vigencia <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={formData.fechaInicioVigencia}
                     onChange={(e) => setFormData({ ...formData, fechaInicioVigencia: e.target.value })}
+                    required
                     className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                   />
                 </div>
@@ -780,12 +779,14 @@ export default function TableReportes() {
                 {/* Fecha Fin Vigencia */}
                 <div className="col-span-1">
                   <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Fecha Fin Vigencia
+                    Fecha Fin Vigencia <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={formData.fechaFinVigencia}
                     onChange={(e) => setFormData({ ...formData, fechaFinVigencia: e.target.value })}
+                    required
+                    min={formData.fechaInicioVigencia || undefined}
                     className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
                   />
                 </div>
