@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import instanciaService, { InstanciaReporteDTO } from "../../services/instanciaService";
 import { useAuth } from "../../context/AuthContext";
+import Pagination, { usePagination } from "../../components/common/Pagination";
 
 export default function MisReportes() {
   const { user } = useAuth();
   const [instancias, setInstancias] = useState<InstanciaReporteDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroEstado, setFiltroEstado] = useState<"pendientes" | "enviados" | "vencidos">("pendientes");
+  const [busqueda, setBusqueda] = useState("");
   
   // Modal de envio
   const [modalEnvio, setModalEnvio] = useState(false);
@@ -48,6 +50,28 @@ export default function MisReportes() {
       setLoading(false);
     }
   };
+
+  // Filtrar por busqueda
+  const instanciasFiltradas = instancias.filter((i) => {
+    if (!busqueda) return true;
+    const term = busqueda.toLowerCase();
+    return (
+      i.reporteNombre?.toLowerCase().includes(term) ||
+      i.entidadNombre?.toLowerCase().includes(term) ||
+      i.periodoReportado?.toLowerCase().includes(term)
+    );
+  });
+
+  // Paginacion
+  const {
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    totalPages,
+    totalItems,
+    paginatedItems,
+  } = usePagination(instanciasFiltradas, 10);
 
   const abrirModalEnvio = (instancia: InstanciaReporteDTO) => {
     setSelectedInstancia(instancia);
@@ -129,14 +153,14 @@ export default function MisReportes() {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
             <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-            URGENTE - {dias === 0 ? "Hoy" : "Manana"}
+            URGENTE - {dias === 0 ? "Hoy" : "Mañana"}
           </span>
         );
       }
       if (dias <= 7) {
         return (
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            {dias} dias restantes
+            {dias} días restantes
           </span>
         );
       }
@@ -144,7 +168,7 @@ export default function MisReportes() {
     
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-        {dias} dias
+        {dias} días
       </span>
     );
   };
@@ -165,7 +189,7 @@ export default function MisReportes() {
           Mis Reportes
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Gestiona y envia los reportes asignados a ti
+          Gestiona y envía los reportes asignados a ti
         </p>
       </div>
 
@@ -235,25 +259,37 @@ export default function MisReportes() {
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="flex gap-2 mb-6">
-        {(["pendientes", "vencidos", "enviados"] as const).map((estado) => (
-          <button
-            key={estado}
-            onClick={() => setFiltroEstado(estado)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filtroEstado === estado
-                ? "bg-blue-600 text-white"
-                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            {estado.charAt(0).toUpperCase() + estado.slice(1)}
-          </button>
-        ))}
+      {/* Filtros y busqueda */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex gap-2">
+          {(["pendientes", "vencidos", "enviados"] as const).map((estado) => (
+            <button
+              key={estado}
+              onClick={() => setFiltroEstado(estado)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filtroEstado === estado
+                  ? "bg-blue-600 text-white"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {estado.charAt(0).toUpperCase() + estado.slice(1)}
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Buscar por reporte, entidad, periodo..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 px-4 text-sm dark:bg-gray-800"
+          />
+        </div>
       </div>
 
       {/* Lista de reportes */}
-      <div className="space-y-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <svg className="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
@@ -261,82 +297,96 @@ export default function MisReportes() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
           </div>
-        ) : instancias.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center border border-gray-200 dark:border-gray-700">
+        ) : paginatedItems.length === 0 ? (
+          <div className="p-12 text-center">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="mt-4 text-gray-500">No tienes reportes {filtroEstado}</p>
           </div>
         ) : (
-          instancias.map((instancia) => (
-            <div
-              key={instancia.id}
-              className="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${instancia.vencido ? "bg-red-100 dark:bg-red-900/30" : instancia.enviado ? "bg-green-100 dark:bg-green-900/30" : "bg-blue-100 dark:bg-blue-900/30"}`}>
-                      {instancia.enviado ? (
-                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 dark:text-white">
-                        {instancia.reporteNombre}
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {instancia.entidadNombre} - {instancia.periodoReportado}
-                      </p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-gray-400">
-                          Vence: {formatFecha(instancia.fechaVencimientoCalculada)}
-                        </span>
-                        {!instancia.enviado && getPrioridadBadge(instancia)}
+          <>
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {paginatedItems.map((instancia) => (
+                <div
+                  key={instancia.id}
+                  className="p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${instancia.vencido ? "bg-red-100 dark:bg-red-900/30" : instancia.enviado ? "bg-green-100 dark:bg-green-900/30" : "bg-blue-100 dark:bg-blue-900/30"}`}>
+                          {instancia.enviado ? (
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-800 dark:text-white">
+                            {instancia.reporteNombre}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {instancia.entidadNombre} • {instancia.periodoReportado}
+                          </p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <span className="text-xs text-gray-400">
+                              Vence: {formatFecha(instancia.fechaVencimientoCalculada)}
+                            </span>
+                            {!instancia.enviado && getPrioridadBadge(instancia)}
+                          </div>
+                        </div>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {instancia.enviado ? (
+                        <>
+                          <span className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg dark:bg-green-900/30 dark:text-green-400">
+                            Enviado
+                          </span>
+                          {instancia.linkReporteFinal && (
+                            <a
+                              href={instancia.linkReporteFinal}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
+                            >
+                              Ver archivo
+                            </a>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => abrirModalEnvio(instancia)}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          Enviar
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  {instancia.enviado ? (
-                    <>
-                      <span className="px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 rounded-lg dark:bg-green-900/30 dark:text-green-400">
-                        Enviado
-                      </span>
-                      {instancia.linkReporteFinal && (
-                        <a
-                          href={instancia.linkReporteFinal}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700"
-                        >
-                          Ver archivo
-                        </a>
-                      )}
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => abrirModalEnvio(instancia)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                      </svg>
-                      Enviar
-                    </button>
-                  )}
-                </div>
-              </div>
+              ))}
             </div>
-          ))
+
+            {/* Paginacion */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          </>
         )}
       </div>
 
@@ -380,7 +430,7 @@ export default function MisReportes() {
               {/* Modo de envio */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Metodo de envio
+                  Método de envío
                 </label>
                 <div className="flex gap-4">
                   <label className="flex items-center cursor-pointer">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import instanciaService, { InstanciaReporteDTO } from "../../services/instanciaService";
 import { useAuth } from "../../context/AuthContext";
+import Pagination, { usePagination } from "../../components/common/Pagination";
 
 export default function SupervisionReportes() {
   const { user } = useAuth();
@@ -53,6 +54,29 @@ export default function SupervisionReportes() {
     }
   };
 
+  // Filtrar por busqueda
+  const instanciasFiltradas = instancias.filter((i) => {
+    if (!busqueda) return true;
+    const term = busqueda.toLowerCase();
+    return (
+      i.reporteNombre?.toLowerCase().includes(term) ||
+      i.entidadNombre?.toLowerCase().includes(term) ||
+      i.periodoReportado?.toLowerCase().includes(term) ||
+      i.responsableElaboracion?.toLowerCase().includes(term)
+    );
+  });
+
+  // Paginacion
+  const {
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    totalPages,
+    totalItems,
+    paginatedItems,
+  } = usePagination(instanciasFiltradas, 10);
+
   const abrirModal = (instancia: InstanciaReporteDTO) => {
     setSelectedInstancia(instancia);
     setObservacionSupervisor("");
@@ -69,8 +93,7 @@ export default function SupervisionReportes() {
     if (!selectedInstancia) return;
     setProcesando(true);
     try {
-      // Aqui llamarias al endpoint de aprobar
-      // await instanciaService.aprobar(selectedInstancia.id, observacionSupervisor);
+      await instanciaService.aprobar(selectedInstancia.id, observacionSupervisor);
       setMensaje({ tipo: "success", texto: "Reporte aprobado exitosamente" });
       cerrarModal();
       cargarInstancias();
@@ -85,12 +108,13 @@ export default function SupervisionReportes() {
   const rechazarReporte = async () => {
     if (!selectedInstancia || !observacionSupervisor.trim()) {
       setMensaje({ tipo: "error", texto: "Debe ingresar un motivo de rechazo" });
+      setTimeout(() => setMensaje(null), 4000);
       return;
     }
     setProcesando(true);
     try {
-      // await instanciaService.rechazar(selectedInstancia.id, observacionSupervisor);
-      setMensaje({ tipo: "success", texto: "Reporte devuelto para correccion" });
+      await instanciaService.rechazar(selectedInstancia.id, observacionSupervisor);
+      setMensaje({ tipo: "success", texto: "Reporte devuelto para corrección" });
       cerrarModal();
       cargarInstancias();
     } catch (error) {
@@ -138,17 +162,6 @@ export default function SupervisionReportes() {
     );
   };
 
-  const instanciasFiltradas = instancias.filter((i) => {
-    if (!busqueda) return true;
-    const term = busqueda.toLowerCase();
-    return (
-      i.reporteNombre?.toLowerCase().includes(term) ||
-      i.entidadNombre?.toLowerCase().includes(term) ||
-      i.periodoReportado?.toLowerCase().includes(term) ||
-      i.responsableElaboracion?.toLowerCase().includes(term)
-    );
-  });
-
   // Estadisticas
   const stats = {
     total: instancias.length,
@@ -162,7 +175,7 @@ export default function SupervisionReportes() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Supervision de Reportes
+          Supervisión de Reportes
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Gestiona y valida los reportes de tus responsables asignados
@@ -197,32 +210,31 @@ export default function SupervisionReportes() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
-        <div className="p-4 flex flex-col sm:flex-row gap-4">
-          <div className="flex gap-2">
-            {(["todos", "pendientes", "enviados", "vencidos"] as const).map((estado) => (
-              <button
-                key={estado}
-                onClick={() => setFiltroEstado(estado)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filtroEstado === estado
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
-                }`}
-              >
-                {estado.charAt(0).toUpperCase() + estado.slice(1)}
-              </button>
-            ))}
-          </div>
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Buscar por reporte, entidad, responsable..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full h-10 px-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm"
-            />
-          </div>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex gap-2 flex-wrap">
+          {(["todos", "pendientes", "enviados", "vencidos"] as const).map((estado) => (
+            <button
+              key={estado}
+              onClick={() => setFiltroEstado(estado)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filtroEstado === estado
+                  ? "bg-blue-600 text-white"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {estado.charAt(0).toUpperCase() + estado.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Buscar reporte, entidad, responsable..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 px-4 text-sm dark:bg-gray-800"
+          />
         </div>
       </div>
 
@@ -235,7 +247,7 @@ export default function SupervisionReportes() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
           </div>
-        ) : instanciasFiltradas.length === 0 ? (
+        ) : paginatedItems.length === 0 ? (
           <div className="text-center py-12">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -243,65 +255,77 @@ export default function SupervisionReportes() {
             <p className="mt-2 text-gray-500">No hay reportes para mostrar</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reporte</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entidad</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periodo</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Responsable</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {instanciasFiltradas.map((instancia) => (
-                  <tr key={instancia.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-gray-800 dark:text-white text-sm">
-                        {instancia.reporteNombre}
-                      </p>
-                      <p className="text-xs text-gray-500">{instancia.reporteId}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {instancia.entidadNombre}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {instancia.periodoReportado}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                      {instancia.responsableElaboracion}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={instancia.vencido ? "text-red-600 font-medium" : "text-gray-600 dark:text-gray-300"}>
-                        {formatFecha(instancia.fechaVencimientoCalculada)}
-                      </span>
-                      {instancia.diasHastaVencimiento !== undefined && !instancia.enviado && (
-                        <p className="text-xs text-gray-400">
-                          {instancia.diasHastaVencimiento < 0
-                            ? `${Math.abs(instancia.diasHastaVencimiento)} dias de retraso`
-                            : `${instancia.diasHastaVencimiento} dias restantes`}
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {getBadgeEstado(instancia)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => abrirModal(instancia)}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                      >
-                        Ver detalle
-                      </button>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reporte</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entidad</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periodo</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Responsable</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimiento</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {paginatedItems.map((instancia) => (
+                    <tr key={instancia.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-gray-800 dark:text-white text-sm">
+                          {instancia.reporteNombre}
+                        </p>
+                        <p className="text-xs text-gray-500">{instancia.reporteId}</p>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                        {instancia.entidadNombre}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                        {instancia.periodoReportado}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                        {instancia.responsableElaboracion}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={instancia.vencido ? "text-red-600 font-medium" : "text-gray-600 dark:text-gray-300"}>
+                          {formatFecha(instancia.fechaVencimientoCalculada)}
+                        </span>
+                        {instancia.diasHastaVencimiento !== undefined && !instancia.enviado && (
+                          <p className="text-xs text-gray-400">
+                            {instancia.diasHastaVencimiento < 0
+                              ? `${Math.abs(instancia.diasHastaVencimiento)} días de retraso`
+                              : `${instancia.diasHastaVencimiento} días restantes`}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {getBadgeEstado(instancia)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => abrirModal(instancia)}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        >
+                          Ver detalle
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Paginacion */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
+          </>
         )}
       </div>
 
@@ -380,7 +404,7 @@ export default function SupervisionReportes() {
                     onChange={(e) => setObservacionSupervisor(e.target.value)}
                     rows={3}
                     placeholder="Ingrese observaciones (requerido para rechazar)..."
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm dark:bg-gray-800"
                   />
                 </div>
               )}

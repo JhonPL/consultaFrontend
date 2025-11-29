@@ -19,6 +19,7 @@ import GestionInstancias from "./pages/Instancias/GestionInstancias";
 import HistoricoReportes from "./pages/Historico/HistoricoReportes";
 import SupervisionReportes from "./pages/Supervision/SupervisionReportes";
 import MisReportes from "./pages/MisReportes/MisReportes";
+import DashboardAuditor from "./pages/Auditor/DashboardAuditor";
 
 // Paginas wrapper
 const Reportes = () => (
@@ -156,6 +157,16 @@ export default function App() {
             element={
               <RoleRoute allowedRoles={["administrador", "supervisor", "auditor"]}>
                 <HistoricoReportes />
+              </RoleRoute>
+            }
+          />
+
+          {/* ============ DASHBOARD AUDITOR ============ */}
+          <Route
+            path="/auditoria"
+            element={
+              <RoleRoute allowedRoles={["auditor", "administrador"]}>
+                <DashboardAuditor />
               </RoleRoute>
             }
           />

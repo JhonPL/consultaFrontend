@@ -38,10 +38,11 @@ const menuByRole: Record<string, { name: string; icon: React.ReactNode; path: st
     { icon: <CalenderIcon />, name: "Mi Calendario", path: "/calendario" },
   ],
   
-  // AUDITOR: Solo lectura
+  // AUDITOR: Solo lectura con graficas de cumplimiento
   auditor: [
     { icon: <GridIcon />, name: "Dashboard", path: "/" },
-    { icon: <PieChartIcon />, name: "Historico / Trazabilidad", path: "/historico" },
+    { icon: <PieChartIcon />, name: "Auditoria y Metricas", path: "/auditoria" },
+    { icon: <ListIcon />, name: "Historico / Trazabilidad", path: "/historico" },
   ],
 };
 
@@ -129,7 +130,7 @@ export default function AppSidebar() {
             </>
           ) : (
             <img
-              src="/images/logo/llanogas-icon.png"
+              src="/images/logo/llanogas-pes.ico"
               alt="Logo"
               width={32}
               height={32}
