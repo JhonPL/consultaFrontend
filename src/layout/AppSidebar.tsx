@@ -19,7 +19,7 @@ const menuByRole: Record<string, { name: string; icon: React.ReactNode; path?: s
     { icon: <UserCircleIcon />, name: "Usuarios y Roles", path: "/usuarios" },
     { icon: <HorizontaLDots />, name: "Gestión de Entidades", path: "/entidades" },
     { icon: <CalenderIcon />, name: "Calendario", path: "/calendar" },
-    { icon: <PieChartIcon />, name: "Histórico", path: "/histórico" },
+    { icon: <PieChartIcon />, name: "Histórico", path: "/historico" },
   ],
   responsable: [
     { icon: <GridIcon />, name: "Mi Dashboard", path: "/" },

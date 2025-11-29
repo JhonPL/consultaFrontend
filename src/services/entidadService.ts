@@ -1,53 +1,38 @@
-import api from './api';
+import api from "./api";
 
-// Interface que coincide con el backend
 export interface Entidad {
-  id?: number;
+  id: number;
   nit: string;
   razonSocial: string;
-  paginaWeb?: string;
-  baseLegal?: string;
+  sigla: string | null;
+  tipoEntidad: string;
+  direccion: string | null;
+  telefono: string | null;
+  email: string | null;
   activo: boolean;
-  fechaCreacion?: string;
-  fechaActualizacion?: string;
 }
 
 const entidadService = {
-  /**
-   * Listar todas las entidades
-   */
   listar: async (): Promise<Entidad[]> => {
-    const response = await api.get<Entidad[]>('/entidades');
+    const response = await api.get("/entidades");
     return response.data;
   },
 
-  /**
-   * Obtener entidad por ID
-   */
-  obtenerPorId: async (id: number): Promise<Entidad> => {
-    const response = await api.get<Entidad>(`/entidades/${id}`);
+  obtener: async (id: number): Promise<Entidad> => {
+    const response = await api.get(`/entidades/${id}`);
     return response.data;
   },
 
-  /**
-   * Crear nueva entidad
-   */
-  crear: async (entidad: Entidad): Promise<Entidad> => {
-    const response = await api.post<Entidad>('/entidades', entidad);
+  crear: async (entidad: Partial<Entidad>): Promise<Entidad> => {
+    const response = await api.post("/entidades", entidad);
     return response.data;
   },
 
-  /**
-   * Actualizar entidad existente
-   */
-  actualizar: async (id: number, entidad: Entidad): Promise<Entidad> => {
-    const response = await api.put<Entidad>(`/entidades/${id}`, entidad);
+  actualizar: async (id: number, entidad: Partial<Entidad>): Promise<Entidad> => {
+    const response = await api.put(`/entidades/${id}`, entidad);
     return response.data;
   },
 
-  /**
-   * Eliminar entidad
-   */
   eliminar: async (id: number): Promise<void> => {
     await api.delete(`/entidades/${id}`);
   },

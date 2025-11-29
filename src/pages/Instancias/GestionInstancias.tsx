@@ -96,8 +96,9 @@ const GestionInstancias: React.FC = () => {
       cargarDatos();
       
       setTimeout(() => setMensajeExito(null), 5000);
-    } catch (err: any) {
-      alert(err.response?.data?.mensaje || "Error al enviar el reporte");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { mensaje?: string } } };
+      alert(error.response?.data?.mensaje || "Error al enviar el reporte");
     } finally {
       setEnviando(false);
     }
@@ -147,7 +148,7 @@ const GestionInstancias: React.FC = () => {
         description="Gestión y envío de reportes"
       />
 
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -162,7 +163,7 @@ const GestionInstancias: React.FC = () => {
           <div className="flex items-center gap-3">
             <select
               value={filtro}
-              onChange={(e) => setFiltro(e.target.value as any)}
+              onChange={(e) => setFiltro(e.target.value as "pendientes" | "vencidos" | "todos")}
               className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
             >
               <option value="pendientes">Pendientes</option>
@@ -424,7 +425,7 @@ const GestionInstancias: React.FC = () => {
                     value={linkReporte}
                     onChange={(e) => setLinkReporte(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                    className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                   />
                 </div>
               )}
@@ -439,7 +440,7 @@ const GestionInstancias: React.FC = () => {
                   value={linkEvidencia}
                   onChange={(e) => setLinkEvidencia(e.target.value)}
                   placeholder="https://..."
-                  className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                  className="w-full h-10 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Ej: Captura de pantalla del correo de envío, confirmación del sistema, etc.
@@ -456,7 +457,7 @@ const GestionInstancias: React.FC = () => {
                   onChange={(e) => setObservaciones(e.target.value)}
                   rows={3}
                   placeholder="Notas adicionales sobre el envío..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 />
               </div>
             </div>

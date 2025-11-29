@@ -8,21 +8,19 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import { useAuth } from "./context/AuthContext";
-import TableReportes from "./components/tables/BasicTables/TableReporteS";
 import TableUserRol from "./components/tables/BasicTables/TableUserRol";
 import TableEntidades from "./components/tables/BasicTables/TableEntidades";
+import TableReporteS from "./components/tables/BasicTables/TableReporteS";
 import GestionInstancias from "./pages/Instancias/GestionInstancias";
 import HistoricoReportes from "./pages/Historico/HistoricoReportes";
 
-
 // ✅ Componentes de páginas
-const Reportes = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReportes/></div>;
+const Reportes = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReporteS/></div>;
 const Usuarios = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableUserRol/></div>;
-const Historico = () => <div className="p-6 text-gray-800 dark:text-gray-100">📊 Histórico</div>;
 const Entidades = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableEntidades/></div>;
 
-const MisReportes = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReportes/></div>;
-const ReportesResponsables = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReportes/></div>;
+const MisReportes = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReporteS/></div>;
+const ReportesResponsables = () => <div className="p-6 text-gray-800 dark:text-gray-100"><TableReporteS/></div>;
 const Consultas = () => <div className="p-6 text-gray-800 dark:text-gray-100">🔍 Consulta General</div>;
 const Trazabilidad = () => <div className="p-6 text-gray-800 dark:text-gray-100">📈 Trazabilidad / Métricas</div>;
 

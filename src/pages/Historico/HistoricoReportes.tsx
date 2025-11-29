@@ -149,7 +149,7 @@ const HistoricoReportes: React.FC = () => {
         description="Consulta el histórico de reportes enviados"
       />
 
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -189,7 +189,7 @@ const HistoricoReportes: React.FC = () => {
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Nombre, código, entidad..."
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               />
             </div>
 
@@ -199,7 +199,7 @@ const HistoricoReportes: React.FC = () => {
               <select
                 value={filterEntidad || ""}
                 onChange={(e) => setFilterEntidad(e.target.value ? Number(e.target.value) : undefined)}
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
                 <option value="">Todas</option>
                 {entidades.map((e) => (
@@ -214,7 +214,7 @@ const HistoricoReportes: React.FC = () => {
               <select
                 value={filterYear || ""}
                 onChange={(e) => setFilterYear(e.target.value ? Number(e.target.value) : undefined)}
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
                 <option value="">Todos</option>
                 {years.map((y) => (
@@ -229,7 +229,7 @@ const HistoricoReportes: React.FC = () => {
               <select
                 value={filterMes || ""}
                 onChange={(e) => setFilterMes(e.target.value ? Number(e.target.value) : undefined)}
-                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+                className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
               >
                 <option value="">Todos</option>
                 {meses.map((m) => (
