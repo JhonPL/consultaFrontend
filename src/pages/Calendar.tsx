@@ -126,6 +126,51 @@ const Calendar: React.FC = () => {
     }
   }, [dateRange, cargarEventos]);
 
+  // Re-cargar eventos si los reportes cambian en otra parte de la app
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      // Si el evento trae detalle con reporteId + diaVencimiento, actualizamos inmediatamente los eventos en memoria
+      const detail = (ev as CustomEvent)?.detail as { reporteId?: string; diaVencimiento?: number } | undefined;
+      if (detail && detail.reporteId) {
+        try {
+          setEvents((prev) => {
+            return prev.map((e) => {
+              const rpId = e.extendedProps?.reporteId?.toString?.();
+              if (rpId === detail.reporteId) {
+                // intentar reemplazar el día manteniendo mes/año
+                try {
+                  const current = new Date(e.start || e.extendedProps?.fecha || "");
+                  if (isNaN(current.getTime())) return e;
+                  const year = current.getFullYear();
+                  const month = current.getMonth();
+                  // clamp day to last day of month
+                  const daysInMonth = new Date(year, month + 1, 0).getDate();
+                  const day = Math.min(detail.diaVencimiento || 1, daysInMonth);
+                  const newDate = new Date(year, month, day);
+                  const iso = newDate.toISOString().slice(0, 10);
+                  const newExtended = { ...e.extendedProps, fecha: iso, fechaVencimientoCalculada: iso } as EventoCalendario;
+                  return { ...e, start: iso, end: iso, extendedProps: newExtended };
+                } catch {
+                  return e;
+                }
+              }
+              return e;
+            });
+          });
+        } catch (err) {
+          // ignore
+        }
+      }
+
+      // además, siempre intentar recargar desde el servidor para mantener la verdad
+      if (dateRange) {
+        cargarEventos(dateRange.start, dateRange.end);
+      }
+    };
+    window.addEventListener('reportes:updated', handler);
+    return () => window.removeEventListener('reportes:updated', handler);
+  }, [dateRange, cargarEventos]);
+
   const getColorByPrioridad = (prioridad?: string, dias?: number): string => {
     if (prioridad) {
       switch (prioridad.toUpperCase()) {
@@ -262,12 +307,6 @@ const Calendar: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-white/90">
-              Calendario de Reportes
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Visualiza los vencimientos de tus obligaciones regulatorias
-            </p>
           </div>
 
           <div className="flex items-center gap-3">

@@ -134,16 +134,22 @@ const instanciaService = {
     linkReporte: string,
     observaciones?: string,
     linkEvidencia?: string
-  ): Promise<InstanciaReporteDTO> => {
-    const response = await api.post<InstanciaReporteDTO>(
-      `/instancias/${id}/enviar-link`,
-      {
-        linkReporte,
-        observaciones,
-        linkEvidencia,
-      }
-    );
-    return response.data;
+): Promise<InstanciaReporteDTO> => {
+    const payload = { linkReporte, observaciones, linkEvidencia };
+
+    try {
+      try { console.log('[DEBUG instanciaService] enviarReporteConLink payload=', payload); } catch {}
+      const response = await api.post<InstanciaReporteDTO>(`/instancias/${id}/enviar-link`, payload);
+      try { console.log('[DEBUG instanciaService] enviarReporteConLink response=', response.data); } catch {}
+
+      // ⭐⭐⭐ ESTA LÍNEA ES LA QUE FALTABA ⭐⭐⭐
+      window.dispatchEvent(new Event("reportes:updated"));
+
+      return response.data;
+    } catch (err) {
+      try { console.error('[DEBUG instanciaService] enviarReporteConLink error=', (err as any)?.response?.data || err); } catch {}
+      throw err;
+    }
   },
 
   /**

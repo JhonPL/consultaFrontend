@@ -33,16 +33,14 @@ const menuByRole: Record<string, { name: string; icon: React.ReactNode; path: st
   
   // RESPONSABLE DE REPORTES: Solo sus reportes asignados
   responsable: [
-    { icon: <GridIcon />, name: "Mi Dashboard", path: "/" },
+    { icon: <GridIcon />, name: "Dashboard", path: "/" },
     { icon: <ListIcon />, name: "Mis Reportes", path: "/mis-reportes" },
     { icon: <CalenderIcon />, name: "Mi Calendario", path: "/calendario" },
   ],
   
   // AUDITOR: Solo lectura con graficas de cumplimiento
   auditor: [
-    { icon: <GridIcon />, name: "Dashboard", path: "/" },
-    { icon: <PieChartIcon />, name: "Auditoria y Metricas", path: "/auditoria" },
-    { icon: <ListIcon />, name: "Historico / Trazabilidad", path: "/historico" },
+    { icon: <PieChartIcon />, name: "Dashboard de Cumplimiento", path: "/" },
   ],
 };
 
@@ -115,7 +113,7 @@ export default function AppSidebar() {
             <>
               <img
                 className="dark:hidden"
-                src="/images/logo/logo-llanogas.png"
+                src="/images/logo/logo-llanogas2-1.png"
                 alt="Logo"
                 width={150}
                 height={40}
@@ -162,20 +160,6 @@ export default function AppSidebar() {
           </div>
         </nav>
       </div>
-
-      {/* Info del usuario */}
-      {(isExpanded || isHovered || isMobileOpen) && user && (
-        <div className="mt-auto pb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="px-2">
-            <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-              {user.nombre}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-              {user.role}
-            </p>
-          </div>
-        </div>
-      )}
     </aside>
   );
 }

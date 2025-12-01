@@ -9,8 +9,8 @@ import Badge from "../ui/badge/Badge";
 
 interface ProximoVencer {
   id: string;
-  nombre: string;
-  entidad: string;
+  reporteNombre: string;
+  entidadNombre: string;
   fechaVencimiento: string;
   diasRestantes: number;
   responsable: string;
@@ -24,12 +24,20 @@ interface ProximosVencerTableProps {
 export default function ProximosVencerTable({ reportes, onVerTodos }: ProximosVencerTableProps) {
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("es-CO", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    const str = String(dateString).trim();
+    const dayMatch = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(str);
+    if (dayMatch) {
+      const dt = new Date(Number(dayMatch[1]), Number(dayMatch[2]) - 1, Number(dayMatch[3]));
+      return dt.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+    }
+    const monthMatch = /^\s*(\d{4})-(\d{2})\s*$/.exec(str);
+    if (monthMatch) {
+      const dt = new Date(Number(monthMatch[1]), Number(monthMatch[2]) - 1, 1);
+      return dt.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+    }
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+    return "-";
   };
 
   const getBadgeColor = (dias: number) => {
@@ -98,15 +106,12 @@ export default function ProximosVencerTable({ reportes, onVerTodos }: ProximosVe
                   <TableCell className="py-3">
                     <div>
                       <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {reporte.nombre}
+                        {reporte.reporteNombre ?? (reporte as any).nombre ?? reporte.id}
                       </p>
-                      <span className="text-gray-500 text-theme-xs dark:text-gray-400">
-                        {reporte.id}
-                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {reporte.entidad}
+                    {reporte.entidadNombre ?? (reporte as any).entidad ?? "-"}
                   </TableCell>
                   <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                     {formatDate(reporte.fechaVencimiento)}

@@ -10,7 +10,7 @@ export default function SupervisionReportes() {
   const [filtroEstado, setFiltroEstado] = useState<"todos" | "pendientes" | "enviados" | "vencidos">("pendientes");
   const [busqueda, setBusqueda] = useState("");
 
-  // Modal de detalle/aprobacion
+  // Modal de detalle
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedInstancia, setSelectedInstancia] = useState<InstanciaReporteDTO | null>(null);
   const [observacionSupervisor, setObservacionSupervisor] = useState("");
@@ -33,7 +33,6 @@ export default function SupervisionReportes() {
       } else if (filtroEstado === "enviados") {
         data = await instanciaService.listarHistorico({});
       } else {
-        // Todos - combinar
         const [pendientes, historico] = await Promise.all([
           instanciaService.listarPendientes(),
           instanciaService.listarHistorico({}),
@@ -172,19 +171,9 @@ export default function SupervisionReportes() {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Supervisión de Reportes
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Gestiona y valida los reportes de tus responsables asignados
-        </p>
-      </div>
-
       {/* Mensaje */}
       {mensaje && (
-        <div className={`mb-4 p-4 rounded-lg ${mensaje.tipo === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700"} border`}>
+        <div className={`mb-4 p-4 rounded-lg ${mensaje.tipo === "success" ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400" : "bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"} border`}>
           {mensaje.texto}
         </div>
       )}
@@ -192,7 +181,7 @@ export default function SupervisionReportes() {
       {/* Estadisticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Reportes</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
           <p className="text-2xl font-bold text-gray-800 dark:text-white">{stats.total}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
@@ -219,7 +208,7 @@ export default function SupervisionReportes() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filtroEstado === estado
                   ? "bg-blue-600 text-white"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {estado.charAt(0).toUpperCase() + estado.slice(1)}
@@ -233,7 +222,7 @@ export default function SupervisionReportes() {
             placeholder="Buscar reporte, entidad, responsable..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 px-4 text-sm dark:bg-gray-800"
+            className="w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 px-4 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           />
         </div>
       </div>
@@ -252,7 +241,7 @@ export default function SupervisionReportes() {
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="mt-2 text-gray-500">No hay reportes para mostrar</p>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">No hay reportes para mostrar</p>
           </div>
         ) : (
           <>
@@ -307,7 +296,7 @@ export default function SupervisionReportes() {
                           onClick={() => abrirModal(instancia)}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                         >
-                          Ver detalle
+                          Ver
                         </button>
                       </td>
                     </tr>
@@ -316,7 +305,6 @@ export default function SupervisionReportes() {
               </table>
             </div>
 
-            {/* Paginacion */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -329,113 +317,115 @@ export default function SupervisionReportes() {
         )}
       </div>
 
-      {/* Modal de detalle */}
+      {/* Modal de detalle - con overflow correcto */}
       {modalOpen && selectedInstancia && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={cerrarModal}></div>
-          <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                Detalle del Reporte
-              </h3>
-              <p className="text-sm text-gray-500">{selectedInstancia.reporteNombre}</p>
-            </div>
-
-            {/* Contenido */}
-            <div className="px-6 py-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500">Entidad</p>
-                  <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.entidadNombre}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Periodo</p>
-                  <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.periodoReportado}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Responsable</p>
-                  <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.responsableElaboracion}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Fecha Vencimiento</p>
-                  <p className="font-medium text-gray-800 dark:text-white">{formatFecha(selectedInstancia.fechaVencimientoCalculada)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Estado</p>
-                  {getBadgeEstado(selectedInstancia)}
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Formato</p>
-                  <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.formatoRequerido || "Libre"}</p>
-                </div>
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50" onClick={cerrarModal}></div>
+            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full">
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  Detalle del Reporte
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{selectedInstancia.reporteNombre}</p>
               </div>
 
-              {/* Archivo/Link */}
-              {selectedInstancia.enviado && selectedInstancia.linkReporteFinal && (
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-green-800 dark:text-green-400 mb-2">
-                    Reporte Enviado
-                  </p>
-                  <a
-                    href={selectedInstancia.linkReporteFinal}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    Ver archivo adjunto
-                  </a>
-                  {selectedInstancia.fechaEnvioReal && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enviado el: {new Date(selectedInstancia.fechaEnvioReal).toLocaleString("es-CO")}
+              {/* Contenido */}
+              <div className="px-6 py-4 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Entidad</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.entidadNombre}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Periodo</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.periodoReportado}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Responsable</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.responsableElaboracion}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Vencimiento</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{formatFecha(selectedInstancia.fechaVencimientoCalculada)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Estado</p>
+                    {getBadgeEstado(selectedInstancia)}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Formato</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{selectedInstancia.formatoRequerido || "Libre"}</p>
+                  </div>
+                </div>
+
+                {/* Archivo/Link */}
+                {selectedInstancia.enviado && selectedInstancia.linkReporteFinal && (
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-sm font-medium text-green-800 dark:text-green-400 mb-2">
+                      Reporte Enviado
                     </p>
-                  )}
-                </div>
-              )}
+                    <a
+                      href={selectedInstancia.linkReporteFinal}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm dark:text-blue-400"
+                    >
+                      Ver archivo adjunto
+                    </a>
+                    {selectedInstancia.fechaEnvioReal && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Enviado: {new Date(selectedInstancia.fechaEnvioReal).toLocaleString("es-CO")}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-              {/* Observaciones del supervisor */}
-              {selectedInstancia.enviado && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Observaciones del Supervisor
-                  </label>
-                  <textarea
-                    value={observacionSupervisor}
-                    onChange={(e) => setObservacionSupervisor(e.target.value)}
-                    rows={3}
-                    placeholder="Ingrese observaciones (requerido para rechazar)..."
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm dark:bg-gray-800"
-                  />
-                </div>
-              )}
-            </div>
+                {/* Observaciones del supervisor */}
+                {selectedInstancia.enviado && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Observaciones
+                    </label>
+                    <textarea
+                      value={observacionSupervisor}
+                      onChange={(e) => setObservacionSupervisor(e.target.value)}
+                      rows={3}
+                      placeholder="Requerido para rechazar..."
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
+                    />
+                  </div>
+                )}
+              </div>
 
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-              <button
-                onClick={cerrarModal}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              >
-                Cerrar
-              </button>
-              {selectedInstancia.enviado && (
-                <>
-                  <button
-                    onClick={rechazarReporte}
-                    disabled={procesando}
-                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
-                  >
-                    Devolver
-                  </button>
-                  <button
-                    onClick={aprobarReporte}
-                    disabled={procesando}
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
-                  >
-                    Aprobar
-                  </button>
-                </>
-              )}
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+                <button
+                  onClick={cerrarModal}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  Cerrar
+                </button>
+                {selectedInstancia.enviado && (
+                  <>
+                    <button
+                      onClick={rechazarReporte}
+                      disabled={procesando}
+                      className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                    >
+                      Devolver
+                    </button>
+                    <button
+                      onClick={aprobarReporte}
+                      disabled={procesando}
+                      className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+                    >
+                      Aprobar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

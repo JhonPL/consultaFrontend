@@ -9,8 +9,8 @@ import Badge from "../ui/badge/Badge";
 
 interface ReporteVencido {
   id: string;
-  nombre: string;
-  entidad: string;
+  reporteNombre: string; // nombre del reporte según servicio
+  entidadNombre: string; // nombre de la entidad según servicio
   fechaVencimiento: string;
   diasVencido: number;
   responsable: string;
@@ -22,9 +22,21 @@ interface VencidosTableProps {
 }
 
 export default function VencidosTable({ reportes, onVerTodos }: VencidosTableProps) {
+  const parseDateLocal = (s?: string | null) => {
+    if (!s) return null;
+    const str = String(s).trim();
+    const dayMatch = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(str);
+    if (dayMatch) return new Date(Number(dayMatch[1]), Number(dayMatch[2]) - 1, Number(dayMatch[3]));
+    const monthMatch = /^\s*(\d{4})-(\d{2})\s*$/.exec(str);
+    if (monthMatch) return new Date(Number(monthMatch[1]), Number(monthMatch[2]) - 1, 1);
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return null;
+  };
+
   const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
+    const date = parseDateLocal(dateString);
+    if (!date) return "-";
     return date.toLocaleDateString("es-CO", {
       day: "2-digit",
       month: "short",
@@ -92,15 +104,12 @@ export default function VencidosTable({ reportes, onVerTodos }: VencidosTablePro
                   <TableCell className="py-3">
                     <div>
                       <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {reporte.nombre}
+                        {reporte.reporteNombre ?? (reporte as any).nombre ?? reporte.id}
                       </p>
-                      <span className="text-gray-500 text-theme-xs dark:text-gray-400">
-                        {reporte.id}
-                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {reporte.entidad}
+                    {reporte.entidadNombre ?? (reporte as any).entidad ?? "-"}
                   </TableCell>
                   <TableCell className="py-3 text-red-500 text-theme-sm font-medium">
                     {formatDate(reporte.fechaVencimiento)}
@@ -110,7 +119,14 @@ export default function VencidosTable({ reportes, onVerTodos }: VencidosTablePro
                   </TableCell>
                   <TableCell className="py-3">
                     <Badge size="sm" color="error">
-                      {reporte.diasVencido} {reporte.diasVencido === 1 ? "día" : "días"}
+                      {(() => {
+                        const diasVal =
+                          typeof reporte.diasVencido === "number"
+                            ? reporte.diasVencido
+                            : (reporte as any).diasVencido ?? (reporte as any).dias ?? null;
+                        if (diasVal === null || diasVal === undefined) return "-";
+                        return `${diasVal} ${diasVal === 1 ? "día" : "días"}`;
+                      })()}
                     </Badge>
                   </TableCell>
                 </TableRow>

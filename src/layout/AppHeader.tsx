@@ -91,7 +91,7 @@ const AppHeader: React.FC = () => {
             />
             <img
               className="hidden dark:block"
-              src="/images/logo/logo-llanogas2.png"
+              src="/images/logo/logo-llanogas2 (1).png"
               alt="Llanogas Logo dark"
             />
           </Link>

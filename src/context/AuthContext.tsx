@@ -1,66 +1,79 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
 import api from "../services/api";
 
-// Tipos de roles del sistema
-type Role = "administrador" | "supervisor" | "responsable" | "auditor" | null;
+export type Role = "administrador" | "supervisor" | "responsable" | "auditor";
 
 interface User {
   id: number;
   email: string;
   nombre: string;
   role: Role;
-  rolOriginal: string; // El nombre del rol tal como viene del backend
+  rolOriginal: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Función para mapear el rol del backend a los roles del frontend
+// Mapeo de roles del backend a roles del frontend
 const mapearRol = (rolBackend: string): Role => {
-  const rol = rolBackend.toUpperCase();
+  const rolUpper = rolBackend?.toUpperCase() || "";
   
-  if (rol.includes("ADMIN")) return "administrador";
-  if (rol.includes("SUPERVISOR")) return "supervisor";
-  if (rol.includes("RESPONSABLE") || rol.includes("ELABOR")) return "responsable";
-  if (rol.includes("AUDITOR") || rol.includes("CONSULTA")) return "auditor";
+  if (rolUpper.includes("ADMIN")) return "administrador";
+  if (rolUpper.includes("SUPERVISOR") || rolUpper.includes("SUPERV")) return "supervisor";
+  if (rolUpper.includes("RESPONSABLE") || rolUpper.includes("ELABOR")) return "responsable";
+  if (rolUpper.includes("AUDITOR") || rolUpper.includes("CONSULTA") || rolUpper.includes("AUDIT")) return "auditor";
   
-  // Por defecto, responsable (rol más restrictivo)
-  return "responsable";
+  return "responsable"; // Default
 };
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
-  // Verificar si hay sesión guardada al cargar
+  // Verificar sesión al cargar
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    
-    if (token && savedUser) {
+    const verificarSesion = () => {
       try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
+        const token = localStorage.getItem("token");
+        const userStr = localStorage.getItem("user");
+        
+        if (token && userStr) {
+          const userData = JSON.parse(userStr);
+          setUser(userData);
+        } else {
+          // Limpiar cualquier dato residual
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setUser(null);
+        }
       } catch (error) {
-        console.error("Error parsing saved user:", error);
+        console.error("Error verificando sesión:", error);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    verificarSesion();
   }, []);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
       const response = await api.post("/auth/login", {
         correo: email,
@@ -84,55 +97,55 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Guardar usuario
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
-
-      // Redirigir al dashboard
-      navigate("/");
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      const mensaje = err.response?.data?.message || "Credenciales inválidas";
+    } catch (error: any) {
+      const mensaje = error.response?.data?.message || 
+                     error.response?.data?.error || 
+                     "Credenciales inválidas";
       throw new Error(mensaje);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    // Limpiar todo el localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    
+    // Limpiar estado
     setUser(null);
-    navigate("/signin");
+    
+    // Limpiar historial del navegador para evitar volver atrás
+    // Reemplazar el historial actual con la página de login
+    window.history.replaceState(null, "", "/signin");
+  }, []);
+
+  const value = {
+    user,
+    loading,
+    isAuthenticated: !!user,
+    login,
+    logout,
   };
 
-  return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        loading, 
-        login, 
-        logout, 
-        isAuthenticated: !!user 
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  if (context === undefined) {
+    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
+  }
   return context;
-};
+}
 
 // Hook para verificar permisos
-export const useHasPermission = (allowedRoles: Role[]) => {
+export function useHasPermission(allowedRoles: Role[]): boolean {
   const { user } = useAuth();
-  if (!user || !user.role) return false;
+  if (!user) return false;
   return allowedRoles.includes(user.role);
-};
+}
 
 // Hook para obtener el rol actual
-export const useRole = (): Role => {
+export function useRole(): Role | null {
   const { user } = useAuth();
   return user?.role || null;
-};
+}
